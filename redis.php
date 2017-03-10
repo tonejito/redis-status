@@ -16,11 +16,25 @@ try
   #$redis->connect('localhost', 6379);
   $redis->connect($host); // unix domain socket.
   $redis->ping();
-  $info=$redis->info();
-  $table = "<table>"."\n";
-  foreach ($info as $k=>$v)
-    $table .= "<tr><th>".$k."</th><td>".$v."</td></tr>"."\n";
-  $table .= "</table>"."\n";
+$info = array
+(
+  "server"      => "",
+  "clients"     => "",
+  "memory"      => "",
+  "persistence" => "",
+  "stats"       => "",
+  "replication" => "",
+  "cpu"         => "",
+  "keyspace"    => ""
+);
+  foreach(array_keys($info) as $type)
+  {
+    $info[$type]=$redis->info($type);
+    $table[$type] = "<table id='".$type."' name='".$type."'>"."\n";
+    foreach ($info[$type] as $k=>$v)
+      $table[$type] .= "<tr><th>".$k."</th><td>".$v."</td></tr>"."\n";
+    $table[$type] .= "</table>"."\n";
+  }
 }
 catch (Exception $e)
 {
@@ -65,7 +79,7 @@ catch (Exception $e)
         .tabs {
             position: relative;
             float: left;
-            width: auto;
+            width: 70%;
         }
 
         .tab {
@@ -95,8 +109,8 @@ catch (Exception $e)
             left: 0;
             background: white;
             border: 1px solid #ccc;
-            height: auto;
-            width: auto;
+            height: 450px;
+            width: 100%;
             overflow: auto;
         }
 
@@ -214,15 +228,26 @@ catch (Exception $e)
       <span style="float:right;font-size:small;">Redis Status</span>
       <h1><?php echo $host; ?></h1>
       <div class="tabs">
+<?php foreach ($table as $id => $content) { ?>
         <div class="tab">
-          <input type="radio" id="tab-status" name="tab-group-1" checked>
-          <label for="tab-status">Status</label>
+          <input type="radio" id="tab-<?php echo $id; ?>" name="tab-group-1">
+          <label for="tab-<?php echo $id; ?>"><?php echo $id; ?></label>
           <div class="content">
-            <?php echo $table ?>
+<?php echo $content ?>
           </div>
         </div>
+<?php } ?>
       </div>
     </div>
+<?php flush(); ?>
+  <body>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+          $('#tab-memory').attr('checked', 'checked');
+          $('#tab-memory').click();
+        });
+    </script>
   </body>
 </html>
 
